@@ -5,10 +5,13 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 
-class App extends React.Component {
+class App extends React.Component<{}, { [key: string]: any}> {
 
   constructor(props: any) {
     super(props);
+    this.state = {
+      news: Array<JSX.Element>
+    };
   }
 
   componentDidMount() {
@@ -16,22 +19,24 @@ class App extends React.Component {
     this.getNewsPageAsync(1);
   }
 
-  async getNewsPageAsync(page: number) {
-    return this.fetchNewsPageAsync(page).then((newsList: Array<NewsItemVM>) => {
+  getNewsPageAsync(page: number) {
+    this.fetchNewsPageAsync(page).then((newsList: Array<NewsItemVM>) => {      
       var newsItems = newsList.map((news, index) => (
         <Card key={news.id}>
           <Card.Body>
-            <Card.Title>{index} {news.title}</Card.Title>
+            <Card.Title>{index + 1}. {news.title}</Card.Title>
             <Card.Subtitle className="mb-2 text-muted">
               <Card.Text>
-                {news.points} by {news.user}
+                {news.points} Points by {news.user}
               </Card.Text>
             </Card.Subtitle>
             <Card.Link href={news.url}>{news.domain}</Card.Link>
           </Card.Body>
         </Card>
       ));
-      return newsItems;
+      this.setState({
+        news: newsItems
+      });
     }).catch(error => {
       throw error;
     })
@@ -59,17 +64,7 @@ class App extends React.Component {
           </Navbar>
         </Container>
         <Container>
-        <Card>
-          <Card.Body>
-            <Card.Title>Test News Card</Card.Title>
-            <Card.Subtitle className="mb-2 text-muted">
-              <Card.Text>
-                Points by Test User
-              </Card.Text>
-            </Card.Subtitle>
-            <Card.Link href="#">test.domain</Card.Link>
-          </Card.Body>
-        </Card>
+          {this.state.news}
         </Container>
       </div>
     );
