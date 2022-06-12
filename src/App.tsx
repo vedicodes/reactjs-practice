@@ -5,12 +5,12 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 
-class App extends React.Component<{}, { [key: string]: any}> {
+class App extends React.Component<IProps, IState, ISnapshot> {
 
   constructor(props: any) {
     super(props);
     this.state = {
-      news: Array<JSX.Element>
+      news: new Array<NewsItemVM>()
     };
   }
 
@@ -20,29 +20,16 @@ class App extends React.Component<{}, { [key: string]: any}> {
   }
 
   getNewsPageAsync(page: number) {
-    this.fetchNewsPageAsync(page).then((newsList: Array<NewsItemVM>) => {      
-      var newsItems = newsList.map((news, index) => (
-        <Card key={news.id}>
-          <Card.Body>
-            <Card.Title>{index + 1}. {news.title}</Card.Title>
-            <Card.Subtitle className="mb-2 text-muted">
-              <Card.Text>
-                {news.points} Points by {news.user}
-              </Card.Text>
-            </Card.Subtitle>
-            <Card.Link href={news.url}>{news.domain}</Card.Link>
-          </Card.Body>
-        </Card>
-      ));
+    this.fetchNewsPageAsync(page).then(newsList => {
       this.setState({
-        news: newsItems
+        news: newsList
       });
     }).catch(error => {
       throw error;
     })
   }
 
-  async fetchNewsPageAsync(page: number) {
+  async fetchNewsPageAsync(page: number): Promise<Array<NewsItemVM>> {
     var url = new URL("newest", "https://node-hnapi.herokuapp.com/");
     url.searchParams.append("page", page.toString());
     return fetch(url.href).then(response => {
@@ -51,6 +38,19 @@ class App extends React.Component<{}, { [key: string]: any}> {
   }
 
   render() {
+    var newsItem = this.state.news.map((news: NewsItemVM, index: number) => (
+      <Card key={news.id}>
+        <Card.Body>
+          <Card.Title>{index + 1}. {news.title}</Card.Title>
+          <Card.Subtitle className="mb-2 text-muted">
+            <Card.Text>
+              {news.points} Points by {news.user}
+            </Card.Text>
+          </Card.Subtitle>
+          <Card.Link href={news.url}>{news.domain}</Card.Link>
+        </Card.Body>
+      </Card>
+    ));
     return (
       <div className="App" >
         <Container>
@@ -58,13 +58,13 @@ class App extends React.Component<{}, { [key: string]: any}> {
             <Container>
               <Navbar.Brand href="#home">Hacker News</Navbar.Brand>
               <Navbar.Text className="justify-content-end">
-                <Button variant="primary">Refresh</Button>
+                <Button variant="primary" onClick={() => this.getNewsPageAsync(1)}>Refresh</Button>
               </Navbar.Text>
             </Container>
           </Navbar>
         </Container>
         <Container>
-          {this.state.news}
+          {newsItem}
         </Container>
       </div>
     );
@@ -83,5 +83,13 @@ export class NewsItemVM {
   url: string = '';
   user: string = '';
 }
+
+interface IProps { }
+
+interface IState {
+  news: Array<NewsItemVM>
+}
+
+interface ISnapshot { }
 
 export default App;
